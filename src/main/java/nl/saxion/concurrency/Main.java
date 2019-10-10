@@ -27,6 +27,7 @@ public class Main extends AllDirectives {
 
     public static final List<Routee> routees = new ArrayList<>();
     final Routes routes;
+    static Router routerBroker;
 
 
     public Main(ActorSystem system, ActorRef broker) {
@@ -53,7 +54,7 @@ public class Main extends AllDirectives {
             ActorRef hotelManager = system.actorOf(Props.create(HotelManager.class, h), "hotel" + i);
             routees.add(new ActorRefRoutee(hotelManager));
         }
-        Router routerBroker = new Router(new RoundRobinRoutingLogic(), routees);
+        routerBroker = new Router(new RoundRobinRoutingLogic(), routees);
 
 
         //ROUTING

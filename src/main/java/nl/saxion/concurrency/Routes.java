@@ -9,6 +9,7 @@ import akka.pattern.Patterns;
 import akka.util.Timeout;
 import nl.saxion.concurrency.Messages.CreateHotel;
 import nl.saxion.concurrency.Messages.GetHotelsList;
+import nl.saxion.concurrency.Messages.OrderRndRoom;
 import scala.concurrent.Future;
 import scala.concurrent.duration.FiniteDuration;
 
@@ -26,17 +27,32 @@ public class Routes extends AllDirectives {
     }
 
     public Route routes() {
-        return route(pathPrefix("hotels", () -> route(getHotelsList())),
-                path("hotel", () -> route(createHotel())));
+        return route(path("hotels", () -> route(getHotelsList())),
+                path("hotel", () -> route(createHotel())),
+                path("order", () -> route(orderRoom())));
+    }
+
+    private Route orderRoom() {
+        return get(()-> {
+            Future<Object> reservation  = Patterns.ask(broker,new OrderRndRoom(),timeout);
+            while(!reservation.isCompleted()) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            return completeOK(reservation.toString(),Jackson.marshaller());
+        });
     }
 
     private Route createHotel() {
         return post(() ->
                 entity(Jackson.unmarshaller(Hotel.class),
                         hotel -> {
-                            Patterns.ask(broker,new CreateHotel(hotel),timeout);
-                            return complete("Hotel created" + hotel.getName());
-                }));
+                            Patterns.ask(broker, new CreateHotel(hotel), timeout);
+                            return complete("Hotel created: " + hotel.getName());
+                        }));
     }
 
     private Route getHotelsList() {

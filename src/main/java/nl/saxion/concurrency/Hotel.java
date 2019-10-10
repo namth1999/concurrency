@@ -60,4 +60,16 @@ public class Hotel{
                 ", rooms=" + rooms +
                 '}';
     }
+
+    public int orderRoom(){
+        int nrRoom = -1;
+        for (int i=0;i<nrRooms;i++){
+            if (!rooms.get(i).isBooked()){
+                nrRoom = i;
+                rooms.get(i).setBooked(true);
+                break;
+            }
+        }
+        return nrRoom;
+    }
 }

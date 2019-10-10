@@ -1,12 +1,19 @@
 package nl.saxion.concurrency;
 
 public class Room {
-    private final int roomNr;
+    private int roomNr;
     private boolean booked;
+
+    public void setRoomNr(int roomNr) {
+        this.roomNr = roomNr;
+    }
 
     public Room(int roomNr, boolean booked) {
         this.roomNr = roomNr;
         this.booked = booked;
+    }
+
+    public Room() {
     }
 
     public int getRoomNr() {
