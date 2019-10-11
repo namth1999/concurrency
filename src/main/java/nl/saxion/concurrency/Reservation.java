@@ -6,6 +6,9 @@ public class Reservation {
 
     @Override
     public String toString() {
+        if (roomNr ==-1) {
+            return "hotel running out of room";
+        }
         return "You have reserved room " + roomNr + " in hotel " + hotel;
     }
 

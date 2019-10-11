@@ -72,4 +72,15 @@ public class Hotel{
         }
         return nrRoom;
     }
+
+    public boolean roomAvailable(){
+        boolean roomAvailable = false;
+        for (int i=0;i<rooms.size();i++){
+            if (!rooms.get(i).isBooked()){
+                roomAvailable = true;
+                break;
+            }
+        }
+        return roomAvailable;
+    }
 }

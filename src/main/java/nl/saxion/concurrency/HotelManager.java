@@ -21,7 +21,12 @@ public class HotelManager extends AbstractActor {
 
                 .match(OrderSpecificHotel.class, sOrder -> {
                     if (Broker.getHotelsList().get(sOrder.getHotelId()).getName().equals(hotel.getName())){
-                        sOrder.setRoomNr(hotel.orderRoom());
+                        if (hotel.roomAvailable()){
+                            sOrder.setRoomNr(hotel.orderRoom());
+                        } else {
+                            sOrder.setRoomNr(-1);
+                        }
+
                     } else {
                         Main.routerBroker.route(sOrder,getSelf());
                     }
