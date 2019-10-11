@@ -4,14 +4,13 @@ import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
-import akka.pattern.Patterns;
 import akka.routing.ActorRefRoutee;
 import akka.routing.RoundRobinRoutingLogic;
 import akka.routing.Router;
 import nl.saxion.concurrency.Messages.CreateHotel;
 import nl.saxion.concurrency.Messages.GetHotelsList;
 import nl.saxion.concurrency.Messages.OrderRndRoom;
-import scala.concurrent.Future;
+import nl.saxion.concurrency.Messages.OrderSpecificHotel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +53,20 @@ public class Broker extends AbstractActor {
                     }
 
                     getSender().tell(new Reservation(orr.getHotelName(),orr.getRoomNr()),getSelf());
+                })
+
+                .match(OrderSpecificHotel.class, sOrder -> {
+                    Main.routerBroker.route(sOrder,getSelf());
+
+                    while (sOrder.getRoomNr() == -2){
+                        try {
+                            Thread.sleep(1);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    getSender().tell(new Reservation(hotels.get(sOrder.getHotelId()).getName(),sOrder.getRoomNr()),getSelf());
                 })
                 .build();
     }

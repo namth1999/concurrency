@@ -4,12 +4,14 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.http.javadsl.marshallers.jackson.Jackson;
 import akka.http.javadsl.server.AllDirectives;
+import akka.http.javadsl.server.PathMatchers;
 import akka.http.javadsl.server.Route;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
 import nl.saxion.concurrency.Messages.CreateHotel;
 import nl.saxion.concurrency.Messages.GetHotelsList;
 import nl.saxion.concurrency.Messages.OrderRndRoom;
+import nl.saxion.concurrency.Messages.OrderSpecificHotel;
 import scala.concurrent.Future;
 import scala.concurrent.duration.FiniteDuration;
 
@@ -29,20 +31,22 @@ public class Routes extends AllDirectives {
     public Route routes() {
         return route(path("hotels", () -> route(getHotelsList())),
                 path("hotel", () -> route(createHotel())),
-                path("order", () -> route(orderRoom())));
+                path("orders", () -> concat(pathEnd(() -> route(orderRoom())))),
+                orderSpecificHotel()
+        );
     }
 
     private Route orderRoom() {
-        return get(()-> {
-            Future<Object> reservation  = Patterns.ask(broker,new OrderRndRoom(),timeout);
-            while(!reservation.isCompleted()) {
+        return get(() -> {
+            Future<Object> reservation = Patterns.ask(broker, new OrderRndRoom(), timeout);
+            while (!reservation.isCompleted()) {
                 try {
                     Thread.sleep(5);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
-            return completeOK(reservation.toString(),Jackson.marshaller());
+            return complete(reservation.toString());
         });
     }
 
@@ -60,5 +64,29 @@ public class Routes extends AllDirectives {
             Future<Object> hotelList = Patterns.ask(broker, new GetHotelsList(), timeout);
             return completeOKWithFuture(hotelList, Jackson.marshaller());
         });
+    }
+
+    private Route orderSpecificHotel() {
+        return concat(
+                pathPrefix("order", () -> concat(
+                        get(() ->
+                                path(PathMatchers.integerSegment(), (ID) -> {
+                                            Integer id = Integer.valueOf(ID);
+                                            if (Broker.getHotelsList().size() <= id) {
+                                                return complete("No hotels exist with such id");
+                                            }
+                                            Future<Object> reservation =
+                                                    Patterns.ask(broker, new OrderSpecificHotel(id), timeout);
+                                            while (!reservation.isCompleted()) {
+                                                try {
+                                                    Thread.sleep(5);
+                                                } catch (InterruptedException e) {
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                            return complete(reservation.toString());
+                                        }
+                                ))
+                )));
     }
 }

@@ -1,6 +1,6 @@
 package nl.saxion.concurrency.Messages;
 
-public class OrderRndRoom {
+public final class OrderRndRoom {
     int roomNr = -2;
     String hotelName;
 
