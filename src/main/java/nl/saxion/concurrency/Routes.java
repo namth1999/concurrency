@@ -37,7 +37,7 @@ public class Routes extends AllDirectives {
             Future<Object> reservation  = Patterns.ask(broker,new OrderRndRoom(),timeout);
             while(!reservation.isCompleted()) {
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(5);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
