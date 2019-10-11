@@ -12,7 +12,7 @@ public class Hotel{
         rooms = new ArrayList<>();
         this.name = name;
         for (int i=0;i<nrRooms;i++){
-            Room r = new Room(i, false);
+            Room r = new Room(i, false,false);
             rooms.add(r);
         }
     }

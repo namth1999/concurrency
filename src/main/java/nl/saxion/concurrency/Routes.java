@@ -2,22 +2,17 @@ package nl.saxion.concurrency;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
-import akka.event.LoggingAdapter;
 import akka.http.javadsl.marshallers.jackson.Jackson;
 import akka.http.javadsl.server.AllDirectives;
 import akka.http.javadsl.server.PathMatchers;
 import akka.http.javadsl.server.Route;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
-import nl.saxion.concurrency.Messages.CreateHotel;
-import nl.saxion.concurrency.Messages.GetHotelsList;
-import nl.saxion.concurrency.Messages.OrderRndRoom;
-import nl.saxion.concurrency.Messages.OrderSpecificHotel;
+import nl.saxion.concurrency.Messages.*;
 import scala.concurrent.Future;
 import scala.concurrent.duration.FiniteDuration;
 
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public class Routes extends AllDirectives {
     private ActorSystem system;
@@ -48,6 +43,7 @@ public class Routes extends AllDirectives {
                     e.printStackTrace();
                 }
             }
+            Patterns.ask(broker, new TimeoutConfirmation(), timeout);
             return complete(reservation.toString());
         });
     }

@@ -47,9 +47,9 @@ public class Main extends AllDirectives {
 
 
         //Create a broker router
-        int nrOfHotels = 10;
+        int nrOfHotels = 2;
         for (int i = 0; i < nrOfHotels; i++) {
-            Hotel h = new Hotel("hotel" + i, 5);
+            Hotel h = new Hotel("hotel" + i, 2);
             Broker.getHotelsList().add(h);
             ActorRef hotelManager = system.actorOf(Props.create(HotelManager.class, h), "hotel" + i);
             routees.add(new ActorRefRoutee(hotelManager));

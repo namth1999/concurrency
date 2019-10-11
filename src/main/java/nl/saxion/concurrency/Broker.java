@@ -7,10 +7,7 @@ import akka.actor.Props;
 import akka.routing.ActorRefRoutee;
 import akka.routing.RoundRobinRoutingLogic;
 import akka.routing.Router;
-import nl.saxion.concurrency.Messages.CreateHotel;
-import nl.saxion.concurrency.Messages.GetHotelsList;
-import nl.saxion.concurrency.Messages.OrderRndRoom;
-import nl.saxion.concurrency.Messages.OrderSpecificHotel;
+import nl.saxion.concurrency.Messages.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +41,7 @@ public class Broker extends AbstractActor {
                 .match(OrderRndRoom.class, rndOrder -> {
                     OrderRndRoom orr = new OrderRndRoom();
                     Main.routerBroker.route(orr,getSelf());
-                    while (orr.getRoomNr() == -2 && orr.getHotelName() == null){
+                    while (orr.getRoomNr() == -2 && orr.getHotelId() == -2){
                         try {
                             Thread.sleep(1);
                         } catch (InterruptedException e) {
@@ -52,7 +49,7 @@ public class Broker extends AbstractActor {
                         }
                     }
 
-                    getSender().tell(new Reservation(orr.getHotelName(),orr.getRoomNr()),getSelf());
+                    getSender().tell(new Reservation(orr.getHotelId(),orr.getRoomNr()),getSelf());
                 })
 
                 .match(OrderSpecificHotel.class, sOrder -> {
@@ -66,7 +63,15 @@ public class Broker extends AbstractActor {
                         }
                     }
 
-                    getSender().tell(new Reservation(hotels.get(sOrder.getHotelId()).getName(),sOrder.getRoomNr()),getSelf());
+                    getSender().tell(new Reservation(sOrder.getHotelId(), sOrder.getRoomNr()),getSelf());
+                })
+
+                .match(TimeoutConfirmation.class, confTimeout ->{
+                    try {
+                        Thread.sleep(3600);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 })
                 .build();
     }

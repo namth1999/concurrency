@@ -15,8 +15,17 @@ public class HotelManager extends AbstractActor {
     public Receive createReceive() {
         return receiveBuilder()
                 .match(OrderRndRoom.class, order -> {
+                    int id = -2;
+                    for (int i=0;i<Broker.getHotelsList().size();i++){
+                        if (hotel.getName().equals(Broker.getHotelsList().get(i).getName())){
+                            id = i;
+                        }
+                    }
                     order.setRoomNr(hotel.orderRoom());
-                    order.setHotelName(hotel.getName());
+                    order.setHotelId(id);
+                    if (order.getRoomNr() == -1) {
+                        Main.routerBroker.route(order,getSelf());
+                    }
                 })
 
                 .match(OrderSpecificHotel.class, sOrder -> {

@@ -2,14 +2,14 @@ package nl.saxion.concurrency.Messages;
 
 public final class OrderRndRoom {
     int roomNr = -2;
-    String hotelName;
+    int hotelId = -2;
 
-    public String getHotelName() {
-        return hotelName;
+    public int getHotelId() {
+        return hotelId;
     }
 
-    public void setHotelName(String hotelName) {
-        this.hotelName = hotelName;
+    public void setHotelId(int hotelId) {
+        this.hotelId = hotelId;
     }
 
     public int getRoomNr() {
