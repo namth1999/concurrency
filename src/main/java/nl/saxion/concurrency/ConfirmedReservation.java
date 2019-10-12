@@ -2,13 +2,15 @@ package nl.saxion.concurrency;
 
 public class ConfirmedReservation {
     private int id;
-    private Room room;
+    private int roomNr;
+    private int hotelId;
     private static int lastAssignedId = 0;
 
-    public ConfirmedReservation(Room room) {
+    public ConfirmedReservation(int hotel, int room) {
         lastAssignedId++;
         this.id = lastAssignedId;
-        this.room = room;
+        this.hotelId = hotel;
+        this.roomNr = room;
     }
 
     public int getId() {
@@ -19,11 +21,19 @@ public class ConfirmedReservation {
         this.id = id;
     }
 
-    public Room getRoom() {
-        return room;
+    public int getRoomNr() {
+        return roomNr;
     }
 
-    public void setRoom(Room room) {
-        this.room = room;
+    public void setRoomNr(int roomNr) {
+        this.roomNr = roomNr;
+    }
+
+    public int getHotelId() {
+        return hotelId;
+    }
+
+    public void setHotelId(int hotelId) {
+        this.hotelId = hotelId;
     }
 }

@@ -29,8 +29,19 @@ public class Routes extends AllDirectives {
         return route(path("hotels", () -> route(getHotelsList())),
                 path("hotel", () -> route(createHotel())),
                 path("orders", () -> concat(pathEnd(() -> route(orderRoom())))),
-                orderSpecificHotel()
+                orderSpecificHotel(),
+                confirm()
         );
+    }
+
+    private Route confirm() {
+        return pathPrefix("confirm",
+                () -> parameter("hotel", hotel
+                        -> parameter("room",room
+                        -> get(() -> {
+            return complete("hehe" + hotel + room);
+                })
+        )));
     }
 
     private Route orderRoom() {
@@ -43,7 +54,6 @@ public class Routes extends AllDirectives {
                     e.printStackTrace();
                 }
             }
-            Patterns.ask(broker, new TimeoutConfirmation(), timeout);
             return complete(reservation.toString());
         });
     }

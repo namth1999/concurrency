@@ -25,9 +25,11 @@ import java.util.concurrent.CompletionStage;
 
 public class Main extends AllDirectives {
 
-    public static final List<Routee> routees = new ArrayList<>();
+    static final List<Routee> routees = new ArrayList<>();
     final Routes routes;
     static Router routerBroker;
+    static List<ConfirmedReservation> confirmedReservations = new ArrayList<>();
+
 
 
     public Main(ActorSystem system, ActorRef broker) {

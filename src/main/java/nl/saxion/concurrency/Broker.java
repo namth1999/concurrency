@@ -9,6 +9,8 @@ import akka.routing.RoundRobinRoutingLogic;
 import akka.routing.Router;
 import nl.saxion.concurrency.Messages.*;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,8 +50,8 @@ public class Broker extends AbstractActor {
                             e.printStackTrace();
                         }
                     }
-
                     getSender().tell(new Reservation(orr.getHotelId(),orr.getRoomNr()),getSelf());
+                    getSelf().tell(new TimeoutConfirmation(orr.getHotelId(),orr.getRoomNr()),getSelf());
                 })
 
                 .match(OrderSpecificHotel.class, sOrder -> {
@@ -67,11 +69,24 @@ public class Broker extends AbstractActor {
                 })
 
                 .match(TimeoutConfirmation.class, confTimeout ->{
-                    try {
-                        Thread.sleep(3600);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+//                    Room waitForConfirmationRoom =
+//                            hotels.get(confTimeout.getHotelId()).getRooms().get(confTimeout.getRoomNr());
+//
+//                    Instant begin = Instant.now();
+//                    Instant end = Instant.now();
+//                    long duration = Duration.between(begin, end).toMillis();
+//
+//                    while (duration<3600){
+//                        end = Instant.now();
+//                        duration = Duration.between(begin, end).toMillis();
+//                        System.out.println(duration);
+//                    }
+//
+//                    if (!waitForConfirmationRoom.isStaked()){
+//                        waitForConfirmationRoom.setBooked(false);
+//                    } else {
+//                        Main.confirmedReservations.add(new ConfirmedReservation(confTimeout.getHotelId(),confTimeout.getRoomNr()));
+//                    }
                 })
                 .build();
     }
