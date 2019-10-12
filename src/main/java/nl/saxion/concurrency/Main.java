@@ -72,12 +72,13 @@ public class Main extends AllDirectives {
             @Override
             public void run() {
                 Collections.sort(waitForConfirmReservation, Comparator.comparing(Reservation::getTime));
+                System.out.println(waitForConfirmReservation);
                 boolean overdue = true;
                 while (overdue) {
                     if (waitForConfirmReservation.size() > 0
                             && (Instant.now().toEpochMilli() - waitForConfirmReservation.get(0).getTime()) > 60000
                     ) {
-                        waitForConfirmReservation.remove(0);
+                        removeOverdue(0);
                         System.out.println("remove");
                     } else {
                         overdue = false;
@@ -90,6 +91,10 @@ public class Main extends AllDirectives {
 
     protected Route createRoute() {
         return routes.routes();
+    }
+
+    public static synchronized void removeOverdue(int index){
+        waitForConfirmReservation.remove(index);
     }
 
     private static String getConfig(String args[]) {

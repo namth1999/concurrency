@@ -3,9 +3,9 @@ package nl.saxion.concurrency;
 import java.time.Instant;
 
 public class Reservation {
-    int hotelId = -2;
-    int roomNr;
-    long time = Instant.now().toEpochMilli();
+    private int hotelId = -2;
+    private int roomNr;
+    private long time = Instant.now().toEpochMilli();
 
     @Override
     public String toString() {

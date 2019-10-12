@@ -53,7 +53,6 @@ public class Broker extends AbstractActor {
                     Reservation reservation = new Reservation(orr.getHotelId(),orr.getRoomNr());
                     Main.waitForConfirmReservation.add(reservation);
                     getSender().tell(reservation,getSelf());
-                    getSelf().tell(new TimeoutConfirmation(orr.getHotelId(),orr.getRoomNr()),getSelf());
                 })
 
                 .match(OrderSpecificHotel.class, sOrder -> {
@@ -72,40 +71,27 @@ public class Broker extends AbstractActor {
                     getSender().tell(reservation,getSelf());
                 })
 
-                .match(TimeoutConfirmation.class, confTimeout ->{
-//                    Room waitForConfirmationRoom =
-//                            hotels.get(confTimeout.getHotelId()).getRooms().get(confTimeout.getRoomNr());
-//
-//                    Instant begin = Instant.now();
-//                    Instant end = Instant.now();
-//                    long duration = Duration.between(begin, end).toMillis();
-//
-//                    while (duration<3600){
-//                        end = Instant.now();
-//                        duration = Duration.between(begin, end).toMillis();
-//                        System.out.println(duration);
-//                    }
-//
-//                    if (!waitForConfirmationRoom.isStaked()){
-//                        waitForConfirmationRoom.setBooked(false);
-//                    } else {
-//                        Main.confirmedReservations.add(new ConfirmedReservation(confTimeout.getHotelId(),confTimeout.getRoomNr()));
-//                    }
-                })
-
                 .match(ConfirmReservation.class, confReservation -> {
                     ConfirmRep rep = new ConfirmRep();
-                    Hotel hotel = hotels.get(confReservation.getHotelId());
-                    Room room = hotel.getRooms().get(confReservation.getRoomNr());
-                    if (room.isBooked()){
-                        if (!room.isStaked()) {
-                            room.setStaked(true);
-                        } else {
-                            rep.setRep("Already confirmed");
+                    List<Reservation> reservations = Main.waitForConfirmReservation;
+                    System.out.println(reservations);
+                    int index = -1;
+
+                    for (int i=0; i< reservations.size();i++){
+                        if (reservations.get(i).getHotelId() == confReservation.getHotelId()
+                        && reservations.get(i).getRoomNr() == confReservation.getRoomNr()){
+                            index = i;
                         }
-                    } else {
-                        rep.setRep("Can't confirm. No reservation found on such room");
                     }
+
+                    if (index == -1){
+                        rep.setRep("Can't confirm. No reservation found on such room");
+                    } else {
+                        hotels.get(confReservation.getHotelId())
+                                .getRooms().get(confReservation.getRoomNr()).setStaked(true);
+                        Main.removeOverdue(index);
+                    }
+                    System.out.println(reservations);
                 })
                 .build();
     }
