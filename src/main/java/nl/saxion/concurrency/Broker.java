@@ -50,7 +50,9 @@ public class Broker extends AbstractActor {
                             e.printStackTrace();
                         }
                     }
-                    getSender().tell(new Reservation(orr.getHotelId(),orr.getRoomNr()),getSelf());
+                    Reservation reservation = new Reservation(orr.getHotelId(),orr.getRoomNr());
+                    Main.waitForConfirmReservation.add(reservation);
+                    getSender().tell(reservation,getSelf());
                     getSelf().tell(new TimeoutConfirmation(orr.getHotelId(),orr.getRoomNr()),getSelf());
                 })
 
@@ -65,7 +67,9 @@ public class Broker extends AbstractActor {
                         }
                     }
 
-                    getSender().tell(new Reservation(sOrder.getHotelId(), sOrder.getRoomNr()),getSelf());
+                    Reservation reservation = new Reservation(sOrder.getHotelId(),sOrder.getRoomNr());
+                    Main.waitForConfirmReservation.add(reservation);
+                    getSender().tell(reservation,getSelf());
                 })
 
                 .match(TimeoutConfirmation.class, confTimeout ->{
@@ -87,6 +91,21 @@ public class Broker extends AbstractActor {
 //                    } else {
 //                        Main.confirmedReservations.add(new ConfirmedReservation(confTimeout.getHotelId(),confTimeout.getRoomNr()));
 //                    }
+                })
+
+                .match(ConfirmReservation.class, confReservation -> {
+                    ConfirmRep rep = new ConfirmRep();
+                    Hotel hotel = hotels.get(confReservation.getHotelId());
+                    Room room = hotel.getRooms().get(confReservation.getRoomNr());
+                    if (room.isBooked()){
+                        if (!room.isStaked()) {
+                            room.setStaked(true);
+                        } else {
+                            rep.setRep("Already confirmed");
+                        }
+                    } else {
+                        rep.setRep("Can't confirm. No reservation found on such room");
+                    }
                 })
                 .build();
     }

@@ -1,8 +1,11 @@
 package nl.saxion.concurrency;
 
+import java.time.Instant;
+
 public class Reservation {
     int hotelId = -2;
     int roomNr;
+    long time = Instant.now().toEpochMilli();
 
     @Override
     public String toString() {
@@ -32,5 +35,9 @@ public class Reservation {
 
     public void setRoomNr(int roomNr) {
         this.roomNr = roomNr;
+    }
+
+    public long getTime() {
+        return time;
     }
 }

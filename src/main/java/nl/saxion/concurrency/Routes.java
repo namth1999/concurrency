@@ -36,12 +36,16 @@ public class Routes extends AllDirectives {
 
     private Route confirm() {
         return pathPrefix("confirm",
-                () -> parameter("hotel", hotel
-                        -> parameter("room",room
-                        -> get(() -> {
-            return complete("hehe" + hotel + room);
-                })
-        )));
+                () -> parameter("hotel", hParam
+                        -> parameter("room", rParam
+                                -> get(() -> {
+                                    int hotel = Integer.parseInt(hParam);
+                                    int room = Integer.parseInt(rParam);
+                            Future<Object> reply = Patterns.ask(broker,new ConfirmReservation(hotel,room),timeout);
+
+                            return complete("hehe" + hotel + room);
+                        })
+                )));
     }
 
     private Route orderRoom() {

@@ -18,8 +18,8 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.Instant;
+import java.util.*;
 import java.util.concurrent.CompletionStage;
 
 
@@ -28,8 +28,7 @@ public class Main extends AllDirectives {
     static final List<Routee> routees = new ArrayList<>();
     final Routes routes;
     static Router routerBroker;
-    static List<ConfirmedReservation> confirmedReservations = new ArrayList<>();
-
+    static List<Reservation> waitForConfirmReservation = new ArrayList<>();
 
 
     public Main(ActorSystem system, ActorRef broker) {
@@ -62,12 +61,31 @@ public class Main extends AllDirectives {
         //ROUTING
         final Http http = Http.get(system);
         final ActorMaterializer materializer = ActorMaterializer.create(system);
-        Main app = new Main(system,broker);
+        Main app = new Main(system, broker);
         final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = app.createRoute().flow(system, materializer);
         final CompletionStage<ServerBinding> binding = http.bindAndHandle(routeFlow,
                 ConnectHttp.toHost("localhost", 8080), materializer);
 
         System.out.println("Server online at http://localhost:8080/");
+
+        new Timer().scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                Collections.sort(waitForConfirmReservation, Comparator.comparing(Reservation::getTime));
+                boolean overdue = true;
+                while (overdue) {
+                    if (waitForConfirmReservation.size() > 0
+                            && (Instant.now().toEpochMilli() - waitForConfirmReservation.get(0).getTime()) > 60000
+                    ) {
+                        waitForConfirmReservation.remove(0);
+                        System.out.println("remove");
+                    } else {
+                        overdue = false;
+                    }
+                }
+            }
+        }, 0, 60000);
+
     }
 
     protected Route createRoute() {
