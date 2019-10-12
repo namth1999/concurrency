@@ -76,8 +76,11 @@ public class Main extends AllDirectives {
                 boolean overdue = true;
                 while (overdue) {
                     if (waitForConfirmReservation.size() > 0
-                            && (Instant.now().toEpochMilli() - waitForConfirmReservation.get(0).getTime()) > 60000
+                            && (Instant.now().toEpochMilli() - waitForConfirmReservation.get(0).getTime()) > 2000
                     ) {
+                        Broker.getHotelsList().get(waitForConfirmReservation.get(0).getHotelId())
+                                .getRooms().get(waitForConfirmReservation.get(0).getRoomNr())
+                                .setBooked(false);
                         removeOverdue(0);
                         System.out.println("remove");
                     } else {
@@ -85,7 +88,7 @@ public class Main extends AllDirectives {
                     }
                 }
             }
-        }, 0, 60000);
+        }, 0, 30000);
 
     }
 
