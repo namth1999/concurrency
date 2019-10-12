@@ -10,4 +10,9 @@ public final class ConfirmRep {
     public void setRep(String rep) {
         this.rep = rep;
     }
+
+    @Override
+    public String toString() {
+        return rep;
+    }
 }

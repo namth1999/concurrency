@@ -72,7 +72,6 @@ public class Main extends AllDirectives {
             @Override
             public void run() {
                 Collections.sort(waitForConfirmReservation, Comparator.comparing(Reservation::getTime));
-                System.out.println(waitForConfirmReservation);
                 boolean overdue = true;
                 while (overdue) {
                     if (waitForConfirmReservation.size() > 0
@@ -82,7 +81,6 @@ public class Main extends AllDirectives {
                                 .getRooms().get(waitForConfirmReservation.get(0).getRoomNr())
                                 .setBooked(false);
                         removeOverdue(0);
-                        System.out.println("remove");
                     } else {
                         overdue = false;
                     }

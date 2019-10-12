@@ -91,7 +91,7 @@ public class Broker extends AbstractActor {
                                 .getRooms().get(confReservation.getRoomNr()).setStaked(true);
                         Main.removeOverdue(index);
                     }
-                    System.out.println(reservations);
+                    getSender().tell(rep,getSelf());
                 })
                 .build();
     }

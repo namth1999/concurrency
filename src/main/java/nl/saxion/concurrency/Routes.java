@@ -39,11 +39,17 @@ public class Routes extends AllDirectives {
                 () -> parameter("hotel", hParam
                         -> parameter("room", rParam
                                 -> get(() -> {
-                                    int hotel = Integer.parseInt(hParam);
-                                    int room = Integer.parseInt(rParam);
-                            Future<Object> reply = Patterns.ask(broker,new ConfirmReservation(hotel,room),timeout);
-
-                            return complete("hehe" + hotel + room);
+                            int hotel = Integer.parseInt(hParam);
+                            int room = Integer.parseInt(rParam);
+                            Future<Object> reply = Patterns.ask(broker, new ConfirmReservation(hotel, room), timeout);
+                            while (!reply.isCompleted()) {
+                                try {
+                                    Thread.sleep(5);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            return complete(reply.toString());
                         })
                 )));
     }
