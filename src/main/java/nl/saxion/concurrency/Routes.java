@@ -27,11 +27,41 @@ public class Routes extends AllDirectives {
 
     public Route routes() {
         return route(path("hotels", () -> route(getHotelsList())),
+                path("reservations", () -> route(getReservation())),
                 path("hotel", () -> route(createHotel())),
                 path("orders", () -> concat(pathEnd(() -> route(orderRoom())))),
                 orderSpecificHotel(),
-                confirm()
+                confirm(),
+                removeReservation()
         );
+    }
+
+    private Route getReservation() {
+        return get(() -> {
+            Future<Object> reservationsList = Patterns.ask(broker, new GetReservations(), timeout);
+            return completeOKWithFuture(reservationsList, Jackson.marshaller());
+        });
+    }
+
+    private Route removeReservation() {
+        return pathPrefix("cancel",
+                () -> parameter("hotel", hParam
+                        -> parameter("room", rParam
+                                -> delete(() -> {
+                            int hotel = Integer.parseInt(hParam);
+                            int room = Integer.parseInt(rParam);
+                            Future<Object> reply = Patterns.ask(broker, new CancelReservation(hotel, room), timeout);
+
+                            while (!reply.isCompleted()) {
+                                try {
+                                    Thread.sleep(1);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            return complete(reply.toString());
+                        })
+                )));
     }
 
     private Route confirm() {
@@ -44,7 +74,7 @@ public class Routes extends AllDirectives {
                             Future<Object> reply = Patterns.ask(broker, new ConfirmReservation(hotel, room), timeout);
                             while (!reply.isCompleted()) {
                                 try {
-                                    Thread.sleep(5);
+                                    Thread.sleep(1);
                                 } catch (InterruptedException e) {
                                     e.printStackTrace();
                                 }
@@ -59,7 +89,7 @@ public class Routes extends AllDirectives {
             Future<Object> reservation = Patterns.ask(broker, new OrderRndRoom(), timeout);
             while (!reservation.isCompleted()) {
                 try {
-                    Thread.sleep(5);
+                    Thread.sleep(1);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -107,4 +137,6 @@ public class Routes extends AllDirectives {
                                 ))
                 )));
     }
+
+
 }

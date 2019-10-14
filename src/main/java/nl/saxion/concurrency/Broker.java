@@ -9,14 +9,13 @@ import akka.routing.RoundRobinRoutingLogic;
 import akka.routing.Router;
 import nl.saxion.concurrency.Messages.*;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class Broker extends AbstractActor {
     private static List<Hotel> hotels = new ArrayList<>();
+    private static List<Reservation> reservations = new ArrayList<>();
     private ActorSystem system;
 
     public Broker(ActorSystem system) {
@@ -42,23 +41,23 @@ public class Broker extends AbstractActor {
 
                 .match(OrderRndRoom.class, rndOrder -> {
                     OrderRndRoom orr = new OrderRndRoom();
-                    Main.routerBroker.route(orr,getSelf());
-                    while (orr.getRoomNr() == -2 && orr.getHotelId() == -2){
+                    Main.routerBroker.route(orr, getSelf());
+                    while (orr.getRoomNr() == -2 && orr.getHotelId() == -2) {
                         try {
                             Thread.sleep(1);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                     }
-                    Reservation reservation = new Reservation(orr.getHotelId(),orr.getRoomNr());
+                    Reservation reservation = new Reservation(orr.getHotelId(), orr.getRoomNr());
                     Main.waitForConfirmReservation.add(reservation);
-                    getSender().tell(reservation,getSelf());
+                    getSender().tell(reservation, getSelf());
                 })
 
                 .match(OrderSpecificHotel.class, sOrder -> {
-                    Main.routerBroker.route(sOrder,getSelf());
+                    Main.routerBroker.route(sOrder, getSelf());
 
-                    while (sOrder.getRoomNr() == -2){
+                    while (sOrder.getRoomNr() == -2) {
                         try {
                             Thread.sleep(1);
                         } catch (InterruptedException e) {
@@ -66,32 +65,62 @@ public class Broker extends AbstractActor {
                         }
                     }
 
-                    Reservation reservation = new Reservation(sOrder.getHotelId(),sOrder.getRoomNr());
+                    Reservation reservation = new Reservation(sOrder.getHotelId(), sOrder.getRoomNr());
                     Main.waitForConfirmReservation.add(reservation);
-                    getSender().tell(reservation,getSelf());
+                    getSender().tell(reservation, getSelf());
                 })
 
                 .match(ConfirmReservation.class, confReservation -> {
-                    ConfirmRep rep = new ConfirmRep();
+                    Reply rep = new Reply();
                     List<Reservation> reservations = Main.waitForConfirmReservation;
-                    System.out.println(reservations);
                     int index = -1;
 
-                    for (int i=0; i< reservations.size();i++){
+                    for (int i = 0; i < reservations.size(); i++) {
                         if (reservations.get(i).getHotelId() == confReservation.getHotelId()
-                        && reservations.get(i).getRoomNr() == confReservation.getRoomNr()){
+                                && reservations.get(i).getRoomNr() == confReservation.getRoomNr()) {
                             index = i;
                         }
                     }
 
-                    if (index == -1){
+                    if (index == -1) {
                         rep.setRep("Can't confirm. No reservation found on such room");
                     } else {
                         hotels.get(confReservation.getHotelId())
                                 .getRooms().get(confReservation.getRoomNr()).setStaked(true);
+                        rep.setRep("Successfully confirm reservation on "
+                                + hotels.get(confReservation.getHotelId()).getName()
+                                + " room " + confReservation.getRoomNr());
+                        Broker.reservations.add(Main.waitForConfirmReservation.get(index));
                         Main.removeOverdue(index);
                     }
-                    getSender().tell(rep,getSelf());
+                    getSender().tell(rep, getSelf());
+                })
+
+                .match(CancelReservation.class, cancelReservation -> {
+                    Reply rep = new Reply();
+                    int index = -1;
+                    for (int i = 0; i < reservations.size(); i++) {
+                        if (reservations.get(i).getHotelId() == cancelReservation.getHotelId()
+                                && reservations.get(i).getRoomNr() == cancelReservation.getRoomNr()) {
+                            index = i;
+                        }
+                    }
+
+                    if (index == -1) {
+                        rep.setRep("No reservation found on such room");
+                    } else {
+                        hotels.get(cancelReservation.getHotelId())
+                                .getRooms().get(cancelReservation.getRoomNr()).setStaked(false);
+                        hotels.get(cancelReservation.getHotelId())
+                                .getRooms().get(cancelReservation.getRoomNr()).setBooked(false);
+                        reservations.remove(index);
+                        rep.setRep("Successfully removed the reservation");
+                    }
+                    getSender().tell(rep, getSelf());
+                })
+
+                .match(GetReservations.class,getReservations -> {
+                    getSender().tell(new ListReservationWrapper(reservations), getSelf());
                 })
                 .build();
     }
@@ -105,6 +134,18 @@ public class Broker extends AbstractActor {
 
         public List<Hotel> getHotels() {
             return hotels;
+        }
+    }
+
+    public static class ListReservationWrapper {
+        private List<Reservation> reservations;
+
+        public List<Reservation> getReservations() {
+            return reservations;
+        }
+
+        public ListReservationWrapper(List<Reservation> reservations) {
+            this.reservations = reservations;
         }
     }
 }

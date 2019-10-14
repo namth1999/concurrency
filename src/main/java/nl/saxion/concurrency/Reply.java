@@ -1,6 +1,6 @@
-package nl.saxion.concurrency.Messages;
+package nl.saxion.concurrency;
 
-public final class ConfirmRep {
+public class Reply {
     private String rep;
 
     public String getRep() {
