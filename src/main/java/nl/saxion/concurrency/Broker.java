@@ -90,7 +90,7 @@ public class Broker extends AbstractActor {
                         rep.setRep("Successfully confirm reservation on "
                                 + hotels.get(confReservation.getHotelId()).getName()
                                 + " room " + confReservation.getRoomNr());
-                        Broker.reservations.add(Main.waitForConfirmReservation.get(index));
+                        Broker.reservations.add(reservations.get(index));
                         Main.removeOverdue(index);
                     }
                     getSender().tell(rep, getSelf());

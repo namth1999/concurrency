@@ -3,7 +3,11 @@ package nl.saxion.concurrency;
 import akka.NotUsed;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
+import akka.actor.Deploy;
 import akka.actor.Props;
+import akka.cluster.Cluster;
+import akka.cluster.Member;
+import akka.cluster.MemberStatus;
 import akka.http.javadsl.ConnectHttp;
 import akka.http.javadsl.Http;
 import akka.http.javadsl.ServerBinding;
@@ -11,6 +15,7 @@ import akka.http.javadsl.model.HttpRequest;
 import akka.http.javadsl.model.HttpResponse;
 import akka.http.javadsl.server.AllDirectives;
 import akka.http.javadsl.server.Route;
+import akka.remote.RemoteScope;
 import akka.routing.*;
 import akka.stream.ActorMaterializer;
 import akka.stream.javadsl.Flow;
@@ -44,11 +49,19 @@ public class Main extends AllDirectives {
 
         ActorSystem system = ActorSystem.create("TrinhHoangAssignment3", config);
 
+        final ArrayList<Member> memberList = new ArrayList<>();
+        Cluster cluster = Cluster.get(system);
+        for (Member member : cluster.state().getMembers()){
+            if (member.status().equals(MemberStatus.up())){
+                memberList.add(member);
+            }
+        }
+
         ActorRef broker = system.actorOf(Props.create(Broker.class, system), "broker");
 
+        ActorRef b = system.actorOf(Props.create(Broker.class, system).withDeploy(new Deploy(new RemoteScope(memberList.get(0).address()))));
 
-        //Create a broker router
-        int nrOfHotels = 2;
+        int nrOfHotels = 10000;
         for (int i = 0; i < nrOfHotels; i++) {
             Hotel h = new Hotel("hotel" + i, 2);
             Broker.getHotelsList().add(h);
